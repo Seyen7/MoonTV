@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 
 'use client';
 
@@ -6,6 +6,7 @@ import { AlertCircle, CheckCircle } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
+import { sanitizeRedirectPath } from '@/lib/security';
 import { checkForUpdates, CURRENT_VERSION, UpdateStatus } from '@/lib/version';
 
 import { useSite } from '@/components/SiteProvider';
@@ -107,7 +108,7 @@ function LoginPageClient() {
       });
 
       if (res.ok) {
-        const redirect = searchParams.get('redirect') || '/';
+        const redirect = sanitizeRedirectPath(searchParams.get('redirect'));
         router.replace(redirect);
       } else if (res.status === 401) {
         setError('密码错误');
@@ -136,7 +137,7 @@ function LoginPageClient() {
       });
 
       if (res.ok) {
-        const redirect = searchParams.get('redirect') || '/';
+        const redirect = sanitizeRedirectPath(searchParams.get('redirect'));
         router.replace(redirect);
       } else {
         const data = await res.json().catch(() => ({}));

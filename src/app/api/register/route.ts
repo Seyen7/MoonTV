@@ -1,4 +1,4 @@
-/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
+﻿/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getConfig } from '@/lib/config';
@@ -74,13 +74,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '当前未开放注册' }, { status: 400 });
     }
 
-    const { username, password } = await req.json();
+    const { username: rawUsername, password } = await req.json();
 
-    if (!username || typeof username !== 'string') {
+    if (!rawUsername || typeof rawUsername !== 'string') {
       return NextResponse.json({ error: '用户名不能为空' }, { status: 400 });
     }
     if (!password || typeof password !== 'string') {
       return NextResponse.json({ error: '密码不能为空' }, { status: 400 });
+    }
+
+    const username = rawUsername.trim();
+    // 用户名会参与存储 key，限制字符集与长度，避免异常 key / 超长输入
+    if (!/^[\w\u4e00-\u9fa5.-]{2,32}$/.test(username)) {
+      return NextResponse.json(
+        { error: '用户名需为 2-32 位字母、数字、中文、下划线、点或短横线' },
+        { status: 400 }
+      );
+    }
+    if (password.length < 6 || password.length > 128) {
+      return NextResponse.json(
+        { error: '密码长度需为 6-128 位' },
+        { status: 400 }
+      );
     }
 
     // 检查是否和管理员重复
@@ -115,7 +130,7 @@ export async function POST(req: NextRequest) {
         expires,
         sameSite: 'lax', // 改为 lax 以支持 PWA
         httpOnly: false, // PWA 需要客户端可访问
-        secure: false, // 根据协议自动设置
+        secure: req.nextUrl.protocol === 'https:',
       });
 
       return response;

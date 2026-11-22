@@ -2,8 +2,28 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const nextConfig = {
   output: 'standalone',
+  poweredByHeader: false,
   eslint: {
     dirs: ['src'],
+  },
+
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          // 禁止浏览器猜测 MIME 类型，降低内容嗅探风险
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          // 禁止被第三方站点 iframe 嵌套，降低点击劫持风险
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+        ],
+      },
+    ];
   },
 
   reactStrictMode: false,

@@ -10,6 +10,8 @@ export interface ApiSite {
   api: string;
   name: string;
   detail?: string;
+  // 配置文件中的默认启用状态；管理员在后台的修改会覆盖该默认值
+  disabled?: boolean;
 }
 
 interface ConfigFileStruct {
@@ -100,13 +102,15 @@ async function initConfig() {
         );
 
         apiSiteEntries.forEach(([key, site]) => {
+          const existing = sourceConfigMap.get(key);
           sourceConfigMap.set(key, {
             key,
             name: site.name,
             api: site.api,
             detail: site.detail,
             from: 'config',
-            disabled: false,
+            // 保留管理员后台的启停状态；新源使用配置文件默认值
+            disabled: existing ? existing.disabled : site.disabled === true,
           });
         });
 
@@ -214,7 +218,7 @@ async function initConfig() {
             api: site.api,
             detail: site.detail,
             from: 'config',
-            disabled: false,
+            disabled: site.disabled === true,
           })),
           CustomCategories: customCategories.map((category) => ({
             name: category.name,
@@ -262,7 +266,7 @@ async function initConfig() {
         api: site.api,
         detail: site.detail,
         from: 'config',
-        disabled: false,
+        disabled: site.disabled === true,
       })),
       CustomCategories:
         fileConfig.custom_category?.map((category) => ({
@@ -331,7 +335,7 @@ export async function getConfig(): Promise<AdminConfig> {
           api: site.api,
           detail: site.detail,
           from: 'config',
-          disabled: false,
+          disabled: site.disabled === true,
         });
       }
     });
@@ -451,7 +455,7 @@ export async function resetConfig() {
       api: site.api,
       detail: site.detail,
       from: 'config',
-      disabled: false,
+      disabled: site.disabled === true,
     })),
     CustomCategories:
       storageType === 'redis'

@@ -4,12 +4,20 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
 import { fetchVideoDetail } from '@/lib/fetchVideoDetail';
+import { timingSafeEqualString } from '@/lib/security';
 import { SearchResult } from '@/lib/types';
 
 export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
-  console.log(request.url);
+  // 配置了 CRON_SECRET 后必须携带正确的密钥，避免任何人随意触发全量刷新任务
+  if (!isAuthorizedCronRequest(request)) {
+    return NextResponse.json(
+      { success: false, message: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
   try {
     console.log('Cron job triggered:', new Date().toISOString());
 
@@ -33,6 +41,22 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function isAuthorizedCronRequest(request: NextRequest): boolean {
+  const secret = process.env.CRON_SECRET;
+  // 未配置密钥时保持向后兼容（Docker 内置定时任务默认不带密钥）
+  if (!secret) {
+    return true;
+  }
+
+  const authorization = request.headers.get('authorization') || '';
+  const customSecret = request.headers.get('x-cron-secret') || '';
+
+  return (
+    timingSafeEqualString(authorization, `Bearer ${secret}`) ||
+    timingSafeEqualString(customSecret, secret)
+  );
 }
 
 async function refreshRecordAndFavorites() {

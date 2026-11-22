@@ -9,13 +9,37 @@ export function getAuthInfoFromCookie(request: NextRequest): {
 } | null {
   const authCookie = request.cookies.get('auth');
 
-  if (!authCookie) {
+  if (!authCookie || authCookie.value.length > 4096) {
     return null;
   }
 
   try {
     const decoded = decodeURIComponent(authCookie.value);
     const authData = JSON.parse(decoded);
+
+    // 只接受结构符合预期的对象，避免把任意 JSON 当作认证信息
+    if (!authData || typeof authData !== 'object' || Array.isArray(authData)) {
+      return null;
+    }
+    if (
+      authData.username !== undefined &&
+      typeof authData.username !== 'string'
+    ) {
+      return null;
+    }
+    if (
+      authData.password !== undefined &&
+      typeof authData.password !== 'string'
+    ) {
+      return null;
+    }
+    if (
+      authData.signature !== undefined &&
+      typeof authData.signature !== 'string'
+    ) {
+      return null;
+    }
+
     return authData;
   } catch (error) {
     return null;

@@ -1,3 +1,5 @@
+﻿/* eslint-disable no-console */
+
 import { NextResponse } from 'next/server';
 
 import { getAvailableApiSites, getCacheTime } from '@/lib/config';
@@ -37,9 +39,8 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 500 }
-    );
+    console.error('获取视频详情失败:', error);
+    // 不把上游错误信息（可能包含资源站地址）直接返回给客户端
+    return NextResponse.json({ error: '获取视频详情失败' }, { status: 500 });
   }
 }

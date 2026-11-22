@@ -9,7 +9,8 @@
     "heimuer": {
       "api": "https://json.heimuer.xyz/api.php/provide/vod",
       "name": "黑木耳",
-      "detail": "https://heimuer.tv"
+      "detail": "https://heimuer.tv",
+      "disabled": true
     },
     "ruyi": {
       "api": "http://cj.rycjapi.com/api.php/provide/vod",
@@ -21,7 +22,8 @@
     },
     "tyyszy": {
       "api": "https://tyyszy.com/api.php/provide/vod",
-      "name": "天涯资源"
+      "name": "天涯资源",
+      "disabled": true
     },
     "ffzy": {
       "api": "http://ffzy5.tv/api.php/provide/vod",
@@ -34,11 +36,13 @@
     },
     "maotaizy": {
       "api": "https://caiji.maotaizy.cc/api.php/provide/vod",
-      "name": "茅台资源"
+      "name": "茅台资源",
+      "disabled": true
     },
     "wolong": {
       "api": "https://wolongzyw.com/api.php/provide/vod",
-      "name": "卧龙资源"
+      "name": "卧龙资源",
+      "disabled": true
     },
     "jisu": {
       "api": "https://jszyapi.com/api.php/provide/vod",
@@ -47,11 +51,13 @@
     },
     "dbzy": {
       "api": "https://dbzy.tv/api.php/provide/vod",
-      "name": "豆瓣资源"
+      "name": "豆瓣资源",
+      "disabled": true
     },
     "mozhua": {
       "api": "https://mozhuazy.com/api.php/provide/vod",
-      "name": "魔爪资源"
+      "name": "魔爪资源",
+      "disabled": true
     },
     "mdzy": {
       "api": "https://www.mdzyapi.com/api.php/provide/vod",
@@ -63,7 +69,8 @@
     },
     "yinghua": {
       "api": "https://m3u8.apiyhzy.com/api.php/provide/vod",
-      "name": "樱花资源"
+      "name": "樱花资源",
+      "disabled": true
     },
     "wujin": {
       "api": "https://api.wujinapi.me/api.php/provide/vod",
@@ -71,7 +78,8 @@
     },
     "wwzy": {
       "api": "https://wwzy.tv/api.php/provide/vod",
-      "name": "旺旺短剧"
+      "name": "旺旺短剧",
+      "disabled": true
     },
     "ikun": {
       "api": "https://ikunzyapi.com/api.php/provide/vod",
@@ -83,7 +91,20 @@
     },
     "xiaomaomi": {
       "api": "https://zy.xmm.hk/api.php/provide/vod",
-      "name": "小猫咪资源"
+      "name": "小猫咪资源",
+      "disabled": true
+    },
+    "hongniu": {
+      "api": "https://www.hongniuzy2.com/api.php/provide/vod",
+      "name": "红牛资源"
+    },
+    "bdzy": {
+      "api": "https://api.apibdzy.com/api.php/provide/vod",
+      "name": "百度资源"
+    },
+    "huya2": {
+      "api": "https://www.huyaapi.com/api.php/provide/vod",
+      "name": "虎牙资源"
     }
   }
 }

@@ -1,8 +1,9 @@
-/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
+﻿/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getConfig } from '@/lib/config';
 import { db } from '@/lib/db';
+import { hashAuthPassword, timingSafeEqualString } from '@/lib/security';
 
 export const runtime = 'edge';
 
@@ -51,9 +52,9 @@ async function generateAuthCookie(
 ): Promise<string> {
   const authData: any = { role: role || 'user' };
 
-  // 只在需要时包含 password
+  // 只在需要时包含 password（仅保存摘要，不保存明文）
   if (includePassword && password) {
-    authData.password = password;
+    authData.password = await hashAuthPassword(password);
   }
 
   if (username && process.env.PASSWORD) {
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
           expires: new Date(0),
           sameSite: 'lax', // 改为 lax 以支持 PWA
           httpOnly: false, // PWA 需要客户端可访问
-          secure: false, // 根据协议自动设置
+          secure: req.nextUrl.protocol === 'https:',
         });
 
         return response;
@@ -93,8 +94,12 @@ export async function POST(req: NextRequest) {
       if (typeof password !== 'string') {
         return NextResponse.json({ error: '密码不能为空' }, { status: 400 });
       }
+      // 限制长度，避免超长输入造成不必要的哈希/比较开销
+      if (password.length > 256) {
+        return NextResponse.json({ error: '密码格式错误' }, { status: 400 });
+      }
 
-      if (password !== envPassword) {
+      if (!timingSafeEqualString(password, envPassword)) {
         return NextResponse.json(
           { ok: false, error: '密码错误' },
           { status: 401 }
@@ -117,7 +122,7 @@ export async function POST(req: NextRequest) {
         expires,
         sameSite: 'lax', // 改为 lax 以支持 PWA
         httpOnly: false, // PWA 需要客户端可访问
-        secure: false, // 根据协议自动设置
+        secure: req.nextUrl.protocol === 'https:',
       });
 
       return response;
@@ -132,11 +137,18 @@ export async function POST(req: NextRequest) {
     if (!password || typeof password !== 'string') {
       return NextResponse.json({ error: '密码不能为空' }, { status: 400 });
     }
+    if (username.length > 64 || password.length > 256) {
+      return NextResponse.json({ error: '用户名或密码错误' }, { status: 401 });
+    }
 
     // 可能是站长，直接读环境变量
+    const ownerUsername = process.env.USERNAME || '';
+    const ownerPassword = process.env.PASSWORD || '';
     if (
-      username === process.env.USERNAME &&
-      password === process.env.PASSWORD
+      ownerUsername &&
+      ownerPassword &&
+      timingSafeEqualString(username, ownerUsername) &&
+      timingSafeEqualString(password, ownerPassword)
     ) {
       // 验证成功，设置认证cookie
       const response = NextResponse.json({ ok: true });
@@ -154,7 +166,7 @@ export async function POST(req: NextRequest) {
         expires,
         sameSite: 'lax', // 改为 lax 以支持 PWA
         httpOnly: false, // PWA 需要客户端可访问
-        secure: false, // 根据协议自动设置
+        secure: req.nextUrl.protocol === 'https:',
       });
 
       return response;
@@ -194,7 +206,7 @@ export async function POST(req: NextRequest) {
         expires,
         sameSite: 'lax', // 改为 lax 以支持 PWA
         httpOnly: false, // PWA 需要客户端可访问
-        secure: false, // 根据协议自动设置
+        secure: req.nextUrl.protocol === 'https:',
       });
 
       return response;

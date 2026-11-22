@@ -132,11 +132,11 @@
 
 ```bash
 # 拉取预构建镜像
-docker pull ghcr.io/senshinya/moontv:latest
+docker pull ghcr.io/seyen7/moontv:latest
 
 # 运行容器
 # -d: 后台运行  -p: 映射端口 3000 -> 3000
-docker run -d --name moontv -p 3000:3000 --env PASSWORD=your_password ghcr.io/senshinya/moontv:latest
+docker run -d --name moontv -p 3000:3000 --env PASSWORD=your_password ghcr.io/seyen7/moontv:latest
 ```
 
 访问 `http://服务器 IP:3000` 即可。（需自行到服务器控制台放通 `3000` 端口）
@@ -150,7 +150,7 @@ docker run -d --name moontv -p 3000:3000 --env PASSWORD=your_password ghcr.io/se
 ```yaml
 services:
   moontv:
-    image: ghcr.io/senshinya/moontv:latest
+    image: ghcr.io/seyen7/moontv:latest
     container_name: moontv
     restart: unless-stopped
     ports:
@@ -167,7 +167,7 @@ services:
 ```yaml
 services:
   moontv-core:
-    image: ghcr.io/senshinya/moontv:latest
+    image: ghcr.io/seyen7/moontv:latest
     container_name: moontv
     restart: unless-stopped
     ports:
@@ -211,6 +211,7 @@ networks:
 | --------------------------------- | -------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | USERNAME                          | 非 localstorage 部署时的管理员账号           | 任意字符串                       | （空）                                                                                                                     |
 | PASSWORD                          | 非 localstorage 部署时为管理员密码           | 任意字符串                       | （空）                                                                                                                     |
+| CRON_SECRET                       | 定时刷新接口 `/api/cron` 的访问密钥          | 任意字符串                       | （空，不校验）                                                                                                             |
 | SITE_NAME                         | 站点名称                                     | 任意字符串                       | MoonTV                                                                                                                     |
 | ANNOUNCEMENT                      | 站点公告                                     | 任意字符串                       | 本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。 |
 | NEXT_PUBLIC_STORAGE_TYPE          | 播放记录/收藏的存储方式                      | localstorage、redis、d1、upstash | localstorage                                                                                                               |
@@ -236,7 +237,6 @@ networks:
       "name": "电影天堂资源",
       "detail": "http://caiji.dyttzyapi.com"
     }
-    // ...更多站点
   },
   "custom_category": [
     {
@@ -254,6 +254,7 @@ networks:
   - `api`：资源站提供的 `vod` JSON API 根地址。
   - `name`：在人机界面中展示的名称。
   - `detail`：（可选）部分无法通过 API 获取剧集详情的站点，需要提供网页详情根 URL，用于爬取。
+  - `disabled`：（可选）设为 `true` 时默认不参与搜索和详情，便于保留配置但临时停用失效站点；部署后也可在 `/admin` 中重新启用。
 - `custom_category`：自定义分类配置，用于在导航中添加个性化的影视分类。以 type + query 作为唯一标识。支持以下字段：
   - `name`：分类显示名称（可选，如不提供则使用 query 作为显示名）
   - `type`：分类类型，支持 `movie`（电影）或 `tv`（电视剧）
@@ -305,8 +306,11 @@ MoonTV 支持标准的苹果 CMS V10 API 格式。
 ### 部署要求
 
 1. **设置环境变量 `PASSWORD`**：为您的实例设置一个强密码
-2. **仅供个人使用**：请勿将您的实例链接公开分享或传播
-3. **遵守当地法律**：请确保您的使用行为符合当地法律法规
+2. **设置环境变量 `CRON_SECRET`**：保护 `/api/cron` 刷新接口，Vercel 定时任务会自动携带该密钥，Docker 内置定时任务同样支持
+3. **仅供个人使用**：请勿将您的实例链接公开分享或传播
+4. **遵守当地法律**：请确保您的使用行为符合当地法律法规
+
+> 从旧版本升级后，`localstorage` 模式的登录 Cookie 会失效，需要重新登录一次。旧版本曾把明文密码写入浏览器可读的 Cookie，新版本只保存密码摘要，同时图片代理、跳转地址等也已加上安全校验。
 
 ### 重要声明
 

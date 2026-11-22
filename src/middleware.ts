@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
+import { verifyAuthPassword } from '@/lib/security';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -29,7 +30,8 @@ export async function middleware(request: NextRequest) {
 
   // localstorage模式：在middleware中完成验证
   if (storageType === 'localstorage') {
-    if (!authInfo.password || authInfo.password !== process.env.PASSWORD) {
+    // cookie 中保存的是密码摘要，不再保存明文密码
+    if (!(await verifyAuthPassword(authInfo.password, process.env.PASSWORD))) {
       return handleAuthFailure(request, pathname);
     }
     return NextResponse.next();
@@ -124,7 +126,10 @@ function shouldSkipAuth(pathname: string): boolean {
     '/manifest.json',
     '/icons/',
     '/logo.png',
-    '/screenshot.png',
+    '/screenshot',
+    '/sw.js',
+    '/workbox-',
+    '/fallback-',
   ];
 
   return skipPaths.some((path) => pathname.startsWith(path));

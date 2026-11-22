@@ -56,6 +56,18 @@ const intervalId = setInterval(() => {
 }, 1000);
 
 // 执行 cron 任务的函数
+function buildCronRequestOptions() {
+  // 与 /api/cron 的鉴权保持一致：配置了 CRON_SECRET 时携带 Bearer token
+  if (process.env.CRON_SECRET) {
+    return {
+      headers: {
+        Authorization: `Bearer ${process.env.CRON_SECRET}`,
+      },
+    };
+  }
+  return {};
+}
+
 function executeCronJob() {
   const cronUrl = `http://${process.env.HOSTNAME || 'localhost'}:${
     process.env.PORT || 3000
@@ -63,7 +75,7 @@ function executeCronJob() {
 
   console.log(`Executing cron job: ${cronUrl}`);
 
-  const req = http.get(cronUrl, (res) => {
+  const req = http.get(cronUrl, buildCronRequestOptions(), (res) => {
     let data = '';
 
     res.on('data', (chunk) => {
